@@ -9,8 +9,8 @@ import (
 
 // Config is config of ipfilter
 type Config struct {
-	Deny  []string
-	Allow []string
+	Allow bool
+	Cidr  []string
 }
 
 // Namespace is ipfilter's config key in extra config

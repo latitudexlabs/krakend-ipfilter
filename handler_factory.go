@@ -36,7 +36,7 @@ func HandlerFactory(next krakendgin.HandlerFactory, logger logging.Logger) krake
 
 		ipFilter := NewIPFilter(cfg)
 
-		logger.Info(fmt.Sprintf("ip-filter krakend-ipfilter: allow %v deny %v", cfg.Allow, cfg.Deny))
+		logger.Info(fmt.Sprintf("ip-filter krakend-ipfilter: allow %t cidr %v", cfg.Allow, cfg.Cidr))
 
 		return IpFilterFactory(ipFilter, handlerFunc, logger)
 	}

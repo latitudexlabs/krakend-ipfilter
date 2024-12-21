@@ -29,8 +29,8 @@ func (noop *NoopFilter) Deny(_ string) bool {
 
 // CIDRFilter is an ip filter base on cidranger
 type CIDRFilter struct {
-	allowRanger cidranger.Ranger
-	denyRanger  cidranger.Ranger
+	allow      bool
+	cidrRanger cidranger.Ranger
 }
 
 func newRanger(ips []string) cidranger.Ranger {
@@ -54,13 +54,12 @@ func newRanger(ips []string) cidranger.Ranger {
 
 // NewIPFilter create a cidranger base ip filter
 func NewIPFilter(cfg *Config) IPFilter {
-	// always allow and never deny
-	if cfg == nil || (len(cfg.Deny) == 0) {
+	if cfg == nil {
 		return &NoopFilter{}
 	}
 	return &CIDRFilter{
-		allowRanger: newRanger(cfg.Allow),
-		denyRanger:  newRanger(cfg.Deny),
+		allow:      cfg.Allow,
+		cidrRanger: newRanger(cfg.Cidr),
 	}
 }
 
@@ -70,15 +69,19 @@ func (f *CIDRFilter) Allow(ip string) bool {
 	if netIP == nil {
 		return false
 	}
-	if allow, err := f.allowRanger.Contains(netIP); allow && err == nil {
+
+	if f.allow {
+		if allow, err := f.cidrRanger.Contains(netIP); allow && err == nil {
+			return true
+		}
+		return false
+	} else {
+		deny, err := f.cidrRanger.Contains(netIP)
+		if deny || err != nil {
+			return false
+		}
 		return true
 	}
-
-	deny, err := f.denyRanger.Contains(netIP)
-	if deny || err != nil {
-		return false
-	}
-	return true
 }
 
 // Deny implement IPFilter.Deny
